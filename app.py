@@ -99,7 +99,7 @@ def serve_video(filename):
 
 
 
-# Load environment variables
+
 load_dotenv()
 password = os.environ.get("MONGODB_PWD")
 connection = f"mongodb+srv://thesnehaladbol:{password}@ex1.sbojxfb.mongodb.net/?retryWrites=true&w=majority&appName=EX1"
@@ -110,13 +110,12 @@ client = MongoClient(connection)
 
 openai.api_key = ""
 
-#initialize db
+initialize db
 dbs = client.list_database_names()
 videos_db = client.videos
 collections = videos_db.list_collection_names()
 collection = videos_db.video
 
-'''
 
 
 
@@ -167,33 +166,17 @@ def voice():
 
 
 
-@app.route("/answer", methods=['GET', 'POST'])
-def answer():
+
+@app.route('/call', methods=['POST'])
+def call():
+    """Accept a phone call and provide real-time transcription."""
     response = VoiceResponse()
-    if 'Digits' in request.values:
-        # Get which digit the caller chose
-        choice = request.values['Digits']
+    start = Start()
+    start.stream(url=f'wss://{request.host}/stream')
+    response.append(start)
 
-        if choice == '1':
-            response.pause(length=10)
-            response.say('Recurring payment of $100 setup from neccessties') # Set up a recurring payment of $100 for rent every month."
 
-            response.pause(length=10)
-            response.say("Reminder to pay electricity bill added") #Remind me to pay my electricity bill on the 5th
-            response.pause(length=10)
-            response.say("Expense added in necessities") # Log an expense of $50 for groceries.
-            
-        elif choice == "2":
-            response.hangup()
-        else:
-            # If the caller didn't choose 1 or 2, apologize and ask them again
-            response.say("Sorry, I don't understand that choice.")
-
-        # If the user didn't choose 1 or 2 (or anything), send them back to /voice
-    response.redirect('/voice')
-
-    return str(response)
-
+    return str(response), 200, {'Content-Type': 'text/xml'}
 
 if __name__ == "__main__":
     app.run(debug=True)
